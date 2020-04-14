@@ -48,7 +48,7 @@ namespace ext::filesystem {
         );
     }
 
-    std::size_t filesystem::entry_size(const std::filesystem::path &entry_path, std::error_code& ec) {
+    std::size_t entry_size(const std::filesystem::path &entry_path, std::error_code& ec) {
         if (!fs::exists(entry_path)) {
             return 0;
         }
