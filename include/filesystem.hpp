@@ -8,10 +8,18 @@ namespace ext::filesystem {
 
 namespace fs = std::filesystem;
 
-void write_entry_info(std::ostream& stream, const std::filesystem::path& entry_path);
 std::size_t entry_size(const std::filesystem::path& entry_path);
 std::size_t entry_size(const std::filesystem::path& entry_path, std::error_code& ec);
 std::string size_to_str(std::size_t size);
+
+template <typename OutIt>
+void dir_items(const std::filesystem::path& dir, OutIt&& out) {
+    if(fs::exists(dir) && fs::is_directory(dir)) {
+        for (auto &item : fs::directory_iterator{dir}) {
+            *out++ = item.path().filename();
+        }
+    }
+}
 
 }
 
