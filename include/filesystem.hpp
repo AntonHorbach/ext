@@ -6,8 +6,11 @@
 
 namespace ext::filesystem {
 
+namespace fs = std::filesystem;
+
 void write_entry_info(std::ostream& stream, const std::filesystem::path& entry_path);
 std::size_t entry_size(const std::filesystem::path& entry_path);
+std::size_t entry_size(const std::filesystem::path& entry_path, std::error_code& ec);
 std::string size_to_str(std::size_t size);
 
 }
