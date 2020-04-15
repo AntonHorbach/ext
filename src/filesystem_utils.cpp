@@ -64,7 +64,7 @@ namespace ext::filesystem {
             );
         }
 
-        return (ec ? size : 0);
+        return (!ec ? size : 0);
     }
 
 }
