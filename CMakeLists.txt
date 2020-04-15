@@ -5,4 +5,4 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(include)
 
-add_library(filesystem src/filesystem.cpp src/EntryType.cpp)
+add_library(filesystem src/filesystem_utils.cpp src/EntryType.cpp)
