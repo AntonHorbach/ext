@@ -3,5 +3,6 @@
 
 #include <EntryType.hpp>
 #include <filesystem_utils.hpp>
+#include <EntryInfo.hpp>
 
 #endif //FILESYSTEM_FILESYSTEM_HPP
