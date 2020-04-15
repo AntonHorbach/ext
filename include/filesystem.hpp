@@ -5,15 +5,20 @@
 #include <filesystem>
 
 namespace ext::filesystem {
-
+    
 namespace fs = std::filesystem;
 
-std::size_t entry_size(const std::filesystem::path& entry_path);
-std::size_t entry_size(const std::filesystem::path& entry_path, std::error_code& ec);
+enum class EntryType: size_t {
+    UNDEFINED, DIR, REG_FL, SOCK, BLK_FL, SYM_LNK, CHR_FL, FIFO, OTH
+};
+
+EntryType entry_type(const fs::path& entry_path);
+std::size_t entry_size(const fs::path& entry_path);
+std::size_t entry_size(const fs::path& entry_path, std::error_code& ec);
 std::string size_to_str(std::size_t size);
 
 template <typename OutIt>
-void dir_items(const std::filesystem::path& dir, OutIt&& out) {
+void dir_items(const fs::path& dir, OutIt&& out) {
     if(fs::exists(dir) && fs::is_directory(dir)) {
         for (auto &item : fs::directory_iterator{dir}) {
             *out++ = item.path().filename();

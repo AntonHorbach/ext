@@ -48,7 +48,7 @@ namespace ext::filesystem {
         );
     }
 
-    std::size_t entry_size(const std::filesystem::path &entry_path, std::error_code& ec) {
+    std::size_t entry_size(const std::filesystem::path &entry_path, std::error_code &ec) {
         if (!fs::exists(entry_path)) {
             return 0;
         }
@@ -56,8 +56,7 @@ namespace ext::filesystem {
         std::size_t size = 0;
         if (!fs::is_directory(entry_path)) {
             size = fs::file_size(entry_path, ec);
-        }
-        else {
+        } else {
             size = std::accumulate(fs::directory_iterator{entry_path}, {}, 0,
                                    [](size_t sum, const fs::directory_entry &ent) {
                                        return sum + entry_size(ent);
@@ -66,6 +65,18 @@ namespace ext::filesystem {
         }
 
         return (ec ? size : 0);
+    }
+
+    EntryType entry_type(const fs::path &entry_path) {
+        if (!fs::exists(entry_path)) return EntryType::UNDEFINED;
+        else if (fs::is_directory(entry_path)) return EntryType::DIR;
+        else if (fs::is_regular_file(entry_path)) return EntryType::REG_FL;
+        else if (fs::is_socket(entry_path)) return EntryType::SOCK;
+        else if (fs::is_block_file(entry_path)) return EntryType::BLK_FL;
+        else if (fs::is_symlink(entry_path)) return EntryType::SYM_LNK;
+        else if (fs::is_character_file(entry_path)) return EntryType::CHR_FL;
+        else if (fs::is_fifo(entry_path)) return EntryType::FIFO;
+        else if (fs::is_other(entry_path)) return EntryType::OTH;
     }
 
 }
