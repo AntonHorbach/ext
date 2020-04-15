@@ -33,6 +33,15 @@ void dir_entries_info(const fs::path& dir, OutIt&& out) {
     }
 }
 
+template <typename OutIt>
+void recursive_dir_entries_info(const fs::path& dir, OutIt&& out) {
+    if(fs::exists(dir) && fs::is_directory(dir)) {
+        for(auto& entry : fs::recursive_directory_iterator{dir}) {
+            *out++ = EntryInfo(entry.path());
+        }
+    }
+}
+
 }
 
 #endif //FS_ENTRYINFO_HPP
