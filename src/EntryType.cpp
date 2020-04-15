@@ -18,4 +18,8 @@ namespace ext::filesystem {
         else if (fs::is_other(entry_path)) return EntryType::OTH;
     }
 
+    std::ostream &operator<<(std::ostream &stream, EntryType type) {
+        return stream << static_cast<char>(type);
+    }
+
 }

@@ -12,9 +12,12 @@ namespace ext::filesystem {
 
 namespace fs = std::filesystem;
 
-enum class EntryType: size_t {
-    UNDEFINED, DIR, REG_FL, SOCK, BLK_FL, SYM_LNK, CHR_FL, FIFO, OTH
+enum class EntryType: char {
+    UNDEFINED = '?', DIR = 'd', REG_FL = 'f', SOCK = 's', BLK_FL = 'b', SYM_LNK = 'l',
+    CHR_FL = 'c', FIFO = 'p', OTH = 'o'
 };
+
+std::ostream& operator<<(std::ostream& stream, EntryType type);
 
 EntryType entry_type(const fs::path& entry_path);
 
