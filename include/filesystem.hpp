@@ -23,6 +23,15 @@ void dir_items(const fs::path& dir, OutIt&& out) {
     }
 }
 
+template <typename OutIt>
+void recursive_dir_items(const fs::path& dir, OutIt&& out) {
+    if(fs::exists(dir) && fs::is_directory(dir)) {
+        for(auto& item : fs::recursive_directory_iterator{dir}) {
+            *out++ = item.path().filename();
+        }
+    }
+}
+
 }
 
 #endif //FILESYSTEM_FILESYSTEM_HPP
