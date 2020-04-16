@@ -67,4 +67,49 @@ namespace ext::filesystem {
         return (!ec ? size : 0);
     }
 
+    std::string perms_to_str(const fs::path &entry_path) {
+        fs::perms p = fs::status(entry_path).permissions();
+
+        const auto perm_to_char = [](bool b, char c) {
+            return (b ? c : '-');
+        };
+
+        return {
+                perm_to_char((p & fs::perms::owner_read) != fs::perms::none, 'r'),
+                perm_to_char((p & fs::perms::owner_write) != fs::perms::none, 'w'),
+                perm_to_char((p & fs::perms::owner_exec) != fs::perms::none, 'e'),
+                perm_to_char((p & fs::perms::group_read) != fs::perms::none, 'r'),
+                perm_to_char((p & fs::perms::group_write) != fs::perms::none, 'w'),
+                perm_to_char((p & fs::perms::group_exec) != fs::perms::none, 'e'),
+                perm_to_char((p & fs::perms::others_read) != fs::perms::none, 'r'),
+                perm_to_char((p & fs::perms::others_write) != fs::perms::none, 'w'),
+                perm_to_char((p & fs::perms::others_exec) != fs::perms::none, 'e')
+        };
+    }
+
+    std::string perms_to_str(const fs::path &entry_path, std::error_code &ec) {
+        std::string perms(9, '-');
+        fs::perms p = fs::status(entry_path, ec).permissions();
+
+        if(!ec) {
+            const auto perm_to_char = [](bool b, char c) {
+                return (b ? c : '-');
+            };
+
+            perms = {
+                    perm_to_char((p & fs::perms::owner_read) != fs::perms::none, 'r'),
+                    perm_to_char((p & fs::perms::owner_write) != fs::perms::none, 'w'),
+                    perm_to_char((p & fs::perms::owner_exec) != fs::perms::none, 'e'),
+                    perm_to_char((p & fs::perms::group_read) != fs::perms::none, 'r'),
+                    perm_to_char((p & fs::perms::group_write) != fs::perms::none, 'w'),
+                    perm_to_char((p & fs::perms::group_exec) != fs::perms::none, 'e'),
+                    perm_to_char((p & fs::perms::others_read) != fs::perms::none, 'r'),
+                    perm_to_char((p & fs::perms::others_write) != fs::perms::none, 'w'),
+                    perm_to_char((p & fs::perms::others_exec) != fs::perms::none, 'e')
+            };
+        }
+
+        return perms;
+    }
+
 }
