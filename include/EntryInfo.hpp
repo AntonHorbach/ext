@@ -16,6 +16,7 @@ struct EntryInfo {
     std::filesystem::path location;
     std::string name;
     std::size_t size;
+    fs::perms perms;
     EntryType type;
 
     explicit EntryInfo(const fs::path& entry_path);
