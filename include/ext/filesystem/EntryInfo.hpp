@@ -7,8 +7,8 @@
 
 #include <filesystem>
 
-#include <EntryType.hpp>
-#include <filesystem_utils.hpp>
+#include <ext/filesystem/EntryType.hpp>
+#include <ext/filesystem/filesystem_utils.hpp>
 
 namespace ext::filesystem {
 
