@@ -58,8 +58,8 @@ namespace ext::filesystem {
             size = fs::file_size(entry_path, ec);
         } else {
             size = std::accumulate(fs::directory_iterator{entry_path}, {}, 0,
-                                   [](size_t sum, const fs::directory_entry &ent) {
-                                       return sum + entry_size(ent);
+                                   [&ec](size_t sum, const fs::directory_entry &ent) {
+                                       return sum + entry_size(ent, ec);
                                    }
             );
         }
