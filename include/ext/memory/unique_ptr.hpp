@@ -67,8 +67,8 @@ public:
     UniquePtr(const UniquePtr&) = delete;
     UniquePtr& operator=(const UniquePtr&) = delete;
 
-    template <typename Type, typename OthDeleter>
-    UniquePtr(UniquePtr<Type, OthDeleter>&& oth) noexcept
+    template <typename Type>
+    UniquePtr(UniquePtr<Type>&& oth) noexcept
         : m_data(oth.m_data)
     {
         oth.m_data = nullptr;
