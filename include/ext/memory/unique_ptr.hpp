@@ -5,6 +5,8 @@
 #ifndef UNIQUE_PTR_HPP
 #define UNIQUE_PTR_HPP
 
+#include "notowner_ptr.hpp"
+
 #include <memory>
 
 namespace ext::memory {
@@ -95,6 +97,11 @@ public:
         m_data = nullptr;
 
         return data;
+    }
+
+    NotOwnerPtr<DataType> get() noexcept
+    {
+        return { m_data };
     }
 
     void swap(UniquePtr& oth)
