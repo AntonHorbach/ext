@@ -11,8 +11,6 @@
 
 namespace ext::memory {
 
-//TODO: CUSTOM CREATOR FOR MAKE_UNIQUE
-
 template <typename T>
 struct default_create
 {
@@ -26,30 +24,50 @@ struct default_create
 template <typename DataType, typename Deleter = std::default_delete<DataType>>
 class UniquePtr
 {
-    static_assert(std::is_invocable<Deleter&, DataType*>::value, "Bad deleter type");
+    static_assert(std::is_invocable_v<Deleter&, DataType*>, "Bad deleter type");
 
     template <typename AllocatedType>
     explicit UniquePtr(AllocatedType* data)
             : m_data(data)
-    {}
+    {
+    }
 
     template <typename AllocatedType, typename OthDeleter>
     UniquePtr(AllocatedType* data, OthDeleter&& deleter)
             : m_data(data), m_deleter(std::forward<OthDeleter>(deleter))
-    {}
+    {
+    }
 
     template <typename OtherDataType, typename OthDeleter>
     friend class UniquePtr;
 
 public:
     template <
-            typename AllocatedType, typename OthDeleter,
-            typename FirstVal, typename ...TArgs
+            typename AllocType,
+            typename CreatorType,
+            typename DeleterType,
+            typename FirstType,
+            typename SecondType,
+            typename  ...TArgs
     >
-    friend UniquePtr<AllocatedType, OthDeleter> make_unique(FirstVal val, TArgs&&... args);
+    friend UniquePtr<AllocType, DeleterType> make_unique(
+            FirstType val1, SecondType val2, TArgs&&... args
+    );
 
-    template <typename AllocatedType, typename OthDeleter, typename IsNotPointer>
-    friend UniquePtr<AllocatedType, OthDeleter> make_unique();
+    template <
+            typename AllocType,
+            typename CreatorType,
+            typename DeleterType,
+            typename FirstType
+    >
+    friend UniquePtr<AllocType, DeleterType> make_unique(FirstType val);
+
+    template <
+            typename AllocType,
+            typename CreatorType,
+            typename DeleterType
+    >
+    friend UniquePtr<AllocType, DeleterType> make_unique();
 
     constexpr UniquePtr(std::nullptr_t val)
         : m_data(val)
@@ -61,16 +79,22 @@ public:
     }
 
     explicit UniquePtr(Deleter&& deleter)
-        : m_data(nullptr), m_deleter(std::forward<Deleter>(deleter))
-    {}
+        : m_deleter(std::forward<Deleter>(deleter))
+    {
+    }
 
     UniquePtr(const UniquePtr&) = delete;
     UniquePtr& operator=(const UniquePtr&) = delete;
 
-    template <typename Type>
-    UniquePtr(UniquePtr<Type>&& oth) noexcept
-        : m_data(oth.m_data)
+    template <typename Type, typename OthDeleter>
+    UniquePtr(UniquePtr<Type, OthDeleter>&& oth) noexcept
+            : m_data(oth.m_data)
     {
+        if constexpr (std::is_pointer_v<Deleter>)
+        {
+            m_deleter = oth.m_deleter;
+        }
+
         oth.m_data = nullptr;
     }
 
@@ -150,46 +174,84 @@ private:
         m_deleter(m_data);
     }
 
-    DataType* m_data;
+    DataType* m_data = nullptr;
     Deleter m_deleter;
 };
 
 template <
-        typename DataType,
-        typename Deleter = std::default_delete<DataType>,
+        typename AllocType,
+        typename CreatorType = default_create<AllocType>,
+        typename DeleterType = std::default_delete<AllocType>,
         typename FirstType,
+        typename SecondType,
         typename  ...TArgs
 >
-UniquePtr<DataType, Deleter> make_unique(FirstType val, TArgs&&... args)
+UniquePtr<AllocType, DeleterType> make_unique(
+        FirstType val1, SecondType val2, TArgs&&... args
+)
 {
-    if constexpr (std::is_pointer_v<Deleter>)
+    if constexpr (std::is_pointer_v<CreatorType>)
     {
-        return UniquePtr<DataType, Deleter>{
-                new DataType(std::forward<TArgs>(args)...), val
-        };
-    }
-    else if constexpr (std::is_same_v<Deleter, FirstType>)
-    {
-        return UniquePtr<DataType, Deleter>{
-            new DataType(std::forward<TArgs>(args)...), val
-        };
+        if constexpr (std::is_pointer_v<DeleterType>)
+        {
+            return UniquePtr<AllocType, DeleterType>{
+                val1(std::forward<TArgs>(args)...), val2
+            };
+        }
+        else
+        {
+            return UniquePtr<AllocType, DeleterType>{
+                val1(val2, std::forward<TArgs>(args)...)
+            };
+        }
     }
     else
     {
-        return UniquePtr<DataType, Deleter>{
-            new DataType(val, std::forward<TArgs>(args)...)
-        };
+        if constexpr (std::is_pointer_v<DeleterType>)
+        {
+            return UniquePtr<AllocType, DeleterType>{
+                CreatorType{}(val2, std::forward<TArgs>(args)...), val1
+            };
+        }
+        else
+        {
+            return UniquePtr<AllocType, DeleterType>{
+                CreatorType{}(val1, val2, std::forward<TArgs>(args)...)
+            };
+        }
     }
 }
 
 template <
-        typename DataType,
-        typename Deleter = std::default_delete<DataType>,
-        typename = std::enable_if_t<!std::is_pointer_v<Deleter>>
+        typename AllocType,
+        typename CreatorType = default_create<AllocType>,
+        typename DeleterType = std::default_delete<AllocType>,
+        typename FirstType
 >
-UniquePtr<DataType, Deleter> make_unique()
+UniquePtr<AllocType, DeleterType> make_unique(FirstType val)
 {
-    return UniquePtr<DataType, Deleter>{ new DataType{} };
+    if constexpr (!std::is_pointer_v<CreatorType> && !std::is_pointer_v<DeleterType>)
+    {
+        return UniquePtr<AllocType, DeleterType>{ CreatorType{}(val) };
+    }
+    else if constexpr (!std::is_pointer_v<CreatorType>)
+    {
+        return UniquePtr<AllocType, DeleterType>{ CreatorType{}(), val };
+    }
+    else
+    {
+        return UniquePtr<AllocType, DeleterType>{ val() };
+    }
+}
+
+template <
+        typename AllocType,
+        typename CreatorType = default_create<AllocType>,
+        typename DeleterType = std::default_delete<AllocType>
+>
+UniquePtr<AllocType, DeleterType> make_unique()
+{
+    return UniquePtr<AllocType, DeleterType>{ CreatorType{}() };
 }
 
 }
