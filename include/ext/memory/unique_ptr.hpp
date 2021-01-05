@@ -192,8 +192,18 @@ UniquePtr<AllocType, DeleterType> make_unique(
 {
     if constexpr (std::is_pointer_v<CreatorType>)
     {
+        static_assert(
+            std::is_same_v<CreatorType, FirstType>,
+            "First value must be a pointer to the create function"
+        );
+
         if constexpr (std::is_pointer_v<DeleterType>)
         {
+            static_assert(
+                std::is_same_v<DeleterType, SecondType>,
+                "Second value must be a pointer to the delete function"
+            );
+
             return UniquePtr<AllocType, DeleterType>{
                 val1(std::forward<TArgs>(args)...), val2
             };
@@ -209,6 +219,11 @@ UniquePtr<AllocType, DeleterType> make_unique(
     {
         if constexpr (std::is_pointer_v<DeleterType>)
         {
+            static_assert(
+                std::is_same_v<DeleterType, FirstType>,
+                "First value must be a pointer to the delete function"
+            );
+
             return UniquePtr<AllocType, DeleterType>{
                 CreatorType{}(val2, std::forward<TArgs>(args)...), val1
             };
@@ -230,16 +245,31 @@ template <
 >
 UniquePtr<AllocType, DeleterType> make_unique(FirstType val)
 {
+    static_assert(
+        !(std::is_pointer_v<CreatorType> && std::is_pointer_v<DeleterType>),
+        "Can't make UniquePtr without providing creator and deleter"
+    );
+
     if constexpr (!std::is_pointer_v<CreatorType> && !std::is_pointer_v<DeleterType>)
     {
         return UniquePtr<AllocType, DeleterType>{ CreatorType{}(val) };
     }
     else if constexpr (!std::is_pointer_v<CreatorType>)
     {
+        static_assert(
+            std::is_same_v<DeleterType, FirstType>,
+            "Value must be a pointer to the delete function"
+        );
+
         return UniquePtr<AllocType, DeleterType>{ CreatorType{}(), val };
     }
     else
     {
+        static_assert(
+            std::is_same_v<CreatorType, FirstType>,
+            "Value must be a pointer to the create function"
+        );
+
         return UniquePtr<AllocType, DeleterType>{ val() };
     }
 }
@@ -251,6 +281,11 @@ template <
 >
 UniquePtr<AllocType, DeleterType> make_unique()
 {
+    static_assert(
+        !std::is_pointer_v<CreatorType> && !std::is_pointer_v<DeleterType>,
+        "Can't make UniquePtr without providing creator and deleter"
+    );
+
     return UniquePtr<AllocType, DeleterType>{ CreatorType{}() };
 }
 
